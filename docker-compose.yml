@@ -1,0 +1,50 @@
+version: '3.7'
+
+volumes:
+  matomo_db_data:
+  matomo_data:
+
+networks:
+  sbdinet:
+    name: sbdinet
+    external: true
+
+services:
+
+  matomo_db:
+    image: mariadb
+    command: --max-allowed-packet=64MB
+    restart: always
+    volumes:
+      - matomo_db_data:/var/lib/mysql
+    env_file:
+      - ./env/matomo.env
+    networks:
+      - sbdinet
+
+  matomo_app:
+    image: matomo:fpm-alpine
+    restart: always
+    links:
+      - matomo_db:db
+    volumes:
+      - matomo_data:/var/www/html
+    env_file:
+      - ./env/matomo.env
+    networks:
+      - sbdinet
+
+#  proxy:
+#    image: jwilder/nginx-proxy:alpine
+#    ports:
+#      - 80:80
+#      - 443:443
+#    volumes:
+#      - /var/run/docker.sock:/tmp/docker.sock:ro
+#      - ./certs:/etc/nginx/certs
+#      - ./nginx-proxy.conf:/etc/nginx/proxy.conf
+#      - ./conf.d/matomo.conf:/etc/nginx/conf.d/matomo.conf
+#      - matomo_data:/var/www/html
+#    networks:
+#      - sbdinet
+
